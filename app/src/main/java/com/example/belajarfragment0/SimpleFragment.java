@@ -1,5 +1,6 @@
 package com.example.belajarfragment0;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -10,24 +11,51 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 public class SimpleFragment extends Fragment {
-
+    
     private static final int YES = 0;
     private static final int NO = 1;
+    private static final int NONE = 2;
+    private static final String CHOICE = "choice";
+    
+    private int radioButtonChoice = NONE;
+    OnFragmentInteractionListener listener;
 
     public SimpleFragment() {
-
+        
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnFragmentInteractionListener) {
+            listener = (OnFragmentInteractionListener) context;
+        } else {
+            throw new ClassCastException(context.toString()
+                    + getResources().getString(R.string.exception_message));
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
+        
         final View rootView = inflater.inflate(R.layout.fragment_simple,
                 container, false);
         final RadioGroup radioGroup = rootView.findViewById(R.id.radio_group);
 
+        
+        
+        if (getArguments().containsKey(CHOICE)) {
+            
+            radioButtonChoice = getArguments().getInt(CHOICE);
+            
+            if (radioButtonChoice != NONE) {
+                radioGroup.check
+                        (radioGroup.getChildAt(radioButtonChoice).getId());
+            }
+        }
 
+        
         radioGroup.setOnCheckedChangeListener(
                 new RadioGroup.OnCheckedChangeListener() {
                     @Override
@@ -37,19 +65,38 @@ public class SimpleFragment extends Fragment {
                         TextView textView =
                                 rootView.findViewById(R.id.fragment_header);
                         switch (index) {
-                            case YES:
+                            case YES: 
                                 textView.setText(R.string.yes_message);
+                                radioButtonChoice = YES;
+                                listener.onRadioButtonChoice(YES);
                                 break;
-                            case NO:
+                            case NO: 
                                 textView.setText(R.string.no_message);
+                                radioButtonChoice = NO;
+                                listener.onRadioButtonChoice(NO);
                                 break;
-                            default: // No choice made.
-                                // Do nothing.
+                            default: 
+                                radioButtonChoice = NONE;
+                                listener.onRadioButtonChoice(NONE);
                                 break;
                         }
                     }
                 });
 
+        
         return rootView;
     }
+
+    public static SimpleFragment newInstance(int choice) {
+        SimpleFragment fragment = new SimpleFragment();
+        Bundle arguments = new Bundle();
+        arguments.putInt(CHOICE, choice);
+        fragment.setArguments(arguments);
+        return fragment;
+    }
+
+    interface OnFragmentInteractionListener {
+        void onRadioButtonChoice(int choice);
+    }
+
 }
